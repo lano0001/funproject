@@ -15,15 +15,13 @@ export default function ServicesPage() {
 
   return (
     <section className="container">
-      <div className="flex items-end justify-between">
+      <div className="flex items-end justify-between text-white">
         <div>
-          <p className="text-xs uppercase tracking-wide text-slate-500">
-            Ydelser
-          </p>
-          <h1 className="mt-1 text-3xl font-bold text-slate-900">
+          <p className="text-xs uppercase tracking-wide ">Ydelser</p>
+          <h1 className="mt-1 text-3xl font-bold ">
             Vagtløsninger til alle behov
           </h1>
-          <p className="mt-2 max-w-2xl text-slate-600">
+          <p className="mt-2 max-w-2xl ">
             {site.name} leverer autoriserede vagter til virksomheder,
             byggepladser og arrangementer. Vi skræddersyr løsninger efter behov
             og risikoprofil.
