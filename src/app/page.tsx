@@ -1,103 +1,121 @@
-import Image from "next/image";
+import Link from "next/link";
+import { site } from "@/config/site";
+import ServiceCard from "@/components/ServiceCard";
+import ContactForm from "@/components/ContactForm";
 
-export default function Home() {
+export default function HomePage() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <>
+      {/* HERO (lys, centrering, bedre kontrast) */}
+      <section className="container text-center">
+        <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/90 px-3 py-1 text-xs text-slate-600 shadow-sm">
+          ✅ Autoriseret vagtfirma · 📍 Hele Danmark · ⏱ Døgnbemanding
+        </span>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
+        <h1 className="mx-auto mt-5 max-w-4xl text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
+          {site.name}: {site.tagline}
+        </h1>
+
+        <p className="mx-auto mt-4 max-w-2xl text-lg text-slate-600">
+          Professionelle vagter til byggepladser, events, detail og erhverv.
+          Hurtig respons og dokumenteret kvalitet.
+        </p>
+
+        <div className="mt-8 flex items-center justify-center gap-3">
+          <a href="#kontakt" className="btn btn-primary">
+            Få et tilbud
           </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          <Link href="/services" className="btn btn-ghost">
+            Se alle ydelser
+          </Link>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+        <div className="mx-auto mt-10 grid max-w-3xl grid-cols-2 gap-4 text-sm text-slate-700 sm:grid-cols-4">
+          <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
+            24/7 vagt
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
+            Autoriserede vagter
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
+            Landsdækkende
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
+            Hurtig udrykning
+          </div>
+        </div>
+      </section>
+
+      {/* YDELSER */}
+      <section className="container mt-16">
+        <div className="flex items-end justify-between">
+          <h2 className="text-2xl font-bold text-white">Populære ydelser</h2>
+          <Link href="/services" className="text-sm underline">
+            Se alle ydelser
+          </Link>
+        </div>
+
+        <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {site.services.slice(0, 6).map((s) => (
+            <ServiceCard
+              key={s.slug}
+              title={s.name}
+              description={s.blurb}
+              href={`/services/${s.slug}`}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* WHY US + PROCESS */}
+      <section className="container mt-20">
+        <div className="grid items-center gap-10 lg:grid-cols-2">
+          <div>
+            <h2 className="text-2xl font-bold text-white">
+              Hvorfor vælge {site.name}?
+            </h2>
+            <ul className="mt-6 space-y-3 text-slate-700">
+              <li className="card p-4">
+                📋 Skræddersyet sikringsplan og risikovurdering
+              </li>
+              <li className="card p-4">
+                🛡️ Autoriserede vagter med dokumenteret erfaring
+              </li>
+              <li className="card p-4">
+                ⏱ Hurtig udrykning og tydelig rapportering
+              </li>
+            </ul>
+          </div>
+          <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+            <h3 className="text-lg font-semibold text-slate-900">
+              Sådan kommer vi i gang
+            </h3>
+            <ol className="mt-4 space-y-3 text-slate-700">
+              <li>1. Udfyld formularen eller ring {site.phone}</li>
+              <li>2. Vi laver risikovurdering og tilbud</li>
+              <li>3. Opstart og løbende rapportering</li>
+            </ol>
+            <a href="#kontakt" className="btn btn-primary mt-6 w-full">
+              Få et tilbud
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* KONTAKT */}
+      <section id="kontakt" className="container mt-20">
+        <div className="rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-sm backdrop-blur">
+          <h2 className="text-2xl font-bold text-slate-900">
+            Kontakt {site.name}
+          </h2>
+          <p className="mt-2 text-slate-600">
+            Svarer typisk inden for 1 arbejdsdag.
+          </p>
+          <div className="mt-6">
+            <ContactForm />
+          </div>
+        </div>
+      </section>
+    </>
   );
 }
