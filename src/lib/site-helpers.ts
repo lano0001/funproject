@@ -1,7 +1,17 @@
-// src/lib/site-helpers.ts
 import type { Metadata } from "next";
 import { site } from "@/config/site";
 import type { Service } from "@/config/services";
+
+/* ——— Types til cityServiceMap ——— */
+type CityRule =
+  | "ALL"
+  | {
+      includeTags?: string[];
+      excludeTags?: string[];
+      plus?: string[];
+      except?: string[];
+      only?: string[];
+    };
 
 /* Lookups */
 export function getCityBySlug(slug: string) {
@@ -19,9 +29,12 @@ export function serviceStaticParams() {
   return site.services.map((s) => ({ slug: s.slug }));
 }
 
-/* City/service relation (ALL | only | includeTags | excludeTags | plus | except) */
+/* Relation: services pr. by */
 export function servicesForCity(citySlug: string): Service[] {
-  const rule = (site as any).cityServiceMap?.[citySlug];
+  const rule = (site.cityServiceMap as Record<string, CityRule> | undefined)?.[
+    citySlug
+  ];
+
   if (!rule || rule === "ALL") return site.services;
 
   if ("only" in rule && rule.only?.length) {
@@ -30,18 +43,22 @@ export function servicesForCity(citySlug: string): Service[] {
   }
 
   let list = site.services as Service[];
+
   if ("includeTags" in rule && rule.includeTags?.length) {
     const inc = new Set(rule.includeTags);
     list = list.filter((s) => s.tags?.some((t) => inc.has(t)));
   }
+
   if ("excludeTags" in rule && rule.excludeTags?.length) {
     const exc = new Set(rule.excludeTags);
     list = list.filter((s) => !s.tags?.some((t) => exc.has(t)));
   }
+
   if ("except" in rule && rule.except?.length) {
     const ex = new Set(rule.except);
     list = list.filter((s) => !ex.has(s.slug));
   }
+
   if ("plus" in rule && rule.plus?.length) {
     const add = new Set(rule.plus);
     const extra = site.services.filter((s) => add.has(s.slug));
@@ -49,10 +66,11 @@ export function servicesForCity(citySlug: string): Service[] {
     for (const s of extra) map.set(s.slug, s);
     list = Array.from(map.values());
   }
+
   return list;
 }
 
-/* NYT: Hvilke byer tilbyder en given service? (til intern linking) */
+/* Hvilke byer tilbyder en given service? */
 export function citiesForService(slug: string) {
   return site.cities.filter((c) =>
     servicesForCity(c.slug).some((s) => s.slug === slug)
@@ -99,9 +117,4 @@ export function buildServiceMetadata(svc: Service): Metadata {
       type: "article",
     },
   };
-}
-
-/* Lille helper til tel:-links */
-export function telHref() {
-  return `tel:${site.phone.replace(/\s+/g, "")}`;
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { site } from "@/config/site";
+import type { Service } from "@/config/services";
 import {
   getServiceBySlug,
   serviceStaticParams,
@@ -33,15 +34,13 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
   const svc = getServiceBySlug(params.slug);
   if (!svc) return notFound();
 
-  const related = (site.services as any[])
+  const related: Service[] = site.services
     .filter(
-      (s) =>
-        s.slug !== svc.slug &&
-        s.tags?.some((t: string) => svc.tags?.includes(t))
+      (s) => s.slug !== svc.slug && s.tags?.some((t) => svc.tags?.includes(t))
     )
     .slice(0, 6);
 
-  const availableCities = citiesForService(svc.slug).slice(0, 8); // vis et udvalg
+  const availableCities = citiesForService(svc.slug).slice(0, 8);
 
   const breadcrumbs = [
     { name: "Forside", url: site.url },
@@ -51,37 +50,32 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
 
   return (
     <section className="container">
-      {/* Breadcrumb */}
       <nav className="mb-4 text-sm text-slate-600">
         <Link href="/services" className="underline">
           ← Alle ydelser
         </Link>
       </nav>
 
-      {/* Hero card */}
       <div className="rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-slate-900">{svc.name}</h1>
             <p className="mt-2 max-w-2xl text-slate-700">{svc.blurb}</p>
 
-            {"tags" in svc &&
-              Array.isArray((svc as any).tags) &&
-              (svc as any).tags.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {(svc as any).tags.map((t: string) => (
-                    <span
-                      key={t}
-                      className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700"
-                    >
-                      {t}
-                    </span>
-                  ))}
-                </div>
-              )}
+            {svc.tags?.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {svc.tags.map((t) => (
+                  <span
+                    key={t}
+                    className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700"
+                  >
+                    {t}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* CTA side */}
           <aside className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-lg font-semibold text-slate-900">
               Få et tilbud
@@ -96,16 +90,16 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
               </a>{" "}
               eller brug formularen.
             </p>
-            <a href="/#kontakt" className="btn btn-primary mt-4 w-full">
+            {/* ⬇️ Link i stedet for a */}
+            <Link href="/#kontakt" className="btn btn-primary mt-4 w-full">
               Kontakt {site.name}
-            </a>
+            </Link>
             <p className="mt-3 text-xs text-slate-500">
               Svarer typisk inden for 1 arbejdsdag.
             </p>
           </aside>
         </div>
 
-        {/* Feature grid */}
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <Feature title="Autoriserede vagter">
             Uddannede, erfarne medarbejdere med dokumenteret baggrund.
@@ -118,7 +112,6 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
           </Feature>
         </div>
 
-        {/* Byer hvor ydelsen tilbydes (intern linking til lokal-intent) */}
         {availableCities.length > 0 && (
           <div className="mt-10">
             <h2 className="text-xl font-semibold text-slate-900">
@@ -139,7 +132,6 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
           </div>
         )}
 
-        {/* Tekstsektion */}
         <div className="prose prose-slate mt-10 max-w-none">
           <h2>Sådan arbejder vi med {svc.name.toLowerCase()}</h2>
           <p>
@@ -149,7 +141,6 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
           </p>
         </div>
 
-        {/* FAQ (render + schema) */}
         {svc.faqs?.length ? (
           <div className="mt-10 space-y-3">
             <h2 className="text-xl font-semibold text-slate-900">FAQ</h2>
@@ -167,7 +158,6 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
           </div>
         ) : null}
 
-        {/* Relaterede ydelser (intern linking + UX) */}
         {related.length > 0 && (
           <div className="mt-10">
             <h2 className="text-xl font-semibold text-slate-900">
@@ -198,14 +188,20 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(faqJsonLd(svc.faqs!)),
+            __html: JSON.stringify(faqJsonLd(svc.faqs)),
           }}
         />
       ) : null}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(breadcrumbList(breadcrumbs)),
+          __html: JSON.stringify(
+            breadcrumbList([
+              { name: "Forside", url: site.url },
+              { name: "Ydelser", url: `${site.url}/services` },
+              { name: svc.name, url: `${site.url}/services/${svc.slug}` },
+            ])
+          ),
         }}
       />
     </section>

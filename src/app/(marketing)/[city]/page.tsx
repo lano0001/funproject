@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { site } from "@/config/site";
 import { servicesForCity } from "@/lib/site-helpers";
-import { breadcrumbList } from "@/lib/structured-data";
 
 export const dynamicParams = false;
 export async function generateStaticParams() {
@@ -30,10 +29,6 @@ export default function CityPage({ params }: { params: { city: string } }) {
   if (!city) return notFound();
 
   const services = servicesForCity(params.city);
-  const breadcrumbs = [
-    { name: "Forside", url: site.url },
-    { name: city.name, url: `${site.url}/${city.slug}` },
-  ];
 
   return (
     <section className="container">
@@ -83,9 +78,11 @@ export default function CityPage({ params }: { params: { city: string } }) {
                 </dd>
               </div>
             </dl>
-            <a href="/#kontakt" className="btn btn-primary mt-4 w-full">
+
+            {/* ⬇️ Link i stedet for a */}
+            <Link href="/#kontakt" className="btn btn-primary mt-4 w-full">
               Få et tilbud
-            </a>
+            </Link>
           </aside>
         </div>
 
@@ -116,14 +113,6 @@ export default function CityPage({ params }: { params: { city: string } }) {
           </p>
         </div>
       </div>
-
-      {/* JSON-LD: BreadcrumbList */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(breadcrumbList(breadcrumbs)),
-        }}
-      />
     </section>
   );
 }
