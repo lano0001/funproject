@@ -2,37 +2,37 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { site } from "@/config/site";
-import { breadcrumbList } from "@/lib/structured-data";
+import type { Service } from "@/config/services";
+import {
+  getServiceBySlug,
+  serviceStaticParams,
+  buildServiceMetadata,
+  citiesForService,
+} from "@/lib/site-helpers";
+import {
+  serviceJsonLd,
+  faqJsonLd,
+  breadcrumbList,
+} from "@/lib/structured-data";
+import type { IconType } from "react-icons";
+import { FaShieldAlt, FaClipboardList, FaClock } from "react-icons/fa";
 
+/** Byg kun de slugs vi kender */
 export const dynamicParams = false;
 export async function generateStaticParams() {
-  return site.services.map((s) => ({ slug: s.slug }));
+  return serviceStaticParams();
 }
 
+/** Unik metadata pr. ydelse */
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const svc = site.services.find((s) => s.slug === slug);
+  const svc = getServiceBySlug(slug);
   if (!svc) return { title: "Service" };
-  const title = `${svc.name} – ${site.name}`;
-  const description = svc.blurb ?? `${svc.name} fra ${site.name}`;
-  const url = `${site.url}/services/${slug}`;
-  return {
-    title,
-    description,
-    alternates: { canonical: url },
-    openGraph: {
-      title,
-      description,
-      url,
-      siteName: site.name,
-      locale: "da_DK",
-      type: "article",
-    },
-  };
+  return buildServiceMetadata(svc);
 }
 
 export default async function ServicePage({
@@ -41,8 +41,18 @@ export default async function ServicePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const svc = site.services.find((s) => s.slug === slug);
+  const svc = getServiceBySlug(slug);
   if (!svc) return notFound();
+
+  // relaterede ydelser (samme tags)
+  const related: Service[] = site.services
+    .filter(
+      (s) => s.slug !== svc.slug && s.tags?.some((t) => svc.tags?.includes(t))
+    )
+    .slice(0, 6);
+
+  // byer hvor ydelsen tilbydes
+  const availableCities = citiesForService(svc.slug).slice(0, 8);
 
   const breadcrumbs = [
     { name: "Forside", url: site.url },
@@ -51,48 +61,185 @@ export default async function ServicePage({
   ];
 
   return (
-    <article className="prose prose-slate max-w-none">
-      <nav className="not-prose mb-6 text-sm">
+    <section className="container">
+      {/* breadcrumb */}
+      <nav className="mb-4 text-sm text-slate-600">
         <Link href="/services" className="underline">
           ← Alle ydelser
         </Link>
       </nav>
 
-      <h1>{svc.name}</h1>
-      <p className="lead">{svc.blurb}</p>
+      {/* HERO-KORT */}
+      <div className="rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-6">
+          <header className="max-w-2xl">
+            <h1 className="text-3xl font-bold text-slate-900">{svc.name}</h1>
+            <p className="mt-2 text-slate-700">{svc.blurb}</p>
 
-      <h2>
-        Hvorfor vælge {site.name} til {svc.name.toLowerCase()}?
-      </h2>
-      <ul>
-        <li>Autoriserede vagter og dokumenteret erfaring</li>
-        <li>Risikovurdering, plan og rapportering</li>
-        <li>Døgnbemanding og hurtig udrykning</li>
-      </ul>
+            {svc.tags?.length ? (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {svc.tags.map((t) => (
+                  <span
+                    key={t}
+                    className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700"
+                  >
+                    {t}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+          </header>
 
-      <h2>Priseksempel</h2>
-      <p>
-        Kontakt os for et tilbud; prisen afhænger af tidsrum, lokation og
-        opgavens omfang.
-      </p>
+          {/* CTA-ASIDE */}
+          <aside className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-slate-900">
+              Få et tilbud
+            </h2>
+            <p className="mt-2 text-sm text-slate-600">
+              Ring{" "}
+              <a
+                className="underline"
+                href={`tel:${site.phone.replace(/\s+/g, "")}`}
+              >
+                {site.phone}
+              </a>{" "}
+              eller brug formularen.
+            </p>
+            <Link href="/#kontakt" className="btn btn-primary mt-4 w-full">
+              Kontakt {site.name}
+            </Link>
+            <p className="mt-3 text-xs text-slate-500">
+              Svarer typisk inden for 1 arbejdsdag.
+            </p>
+          </aside>
+        </div>
 
-      <h2>FAQ</h2>
-      <details>
-        <summary>Hvor hurtigt kan I rykke ud?</summary>
-        <p>Ofte samme dag i de største byer – ring {site.phone}.</p>
-      </details>
-      <details>
-        <summary>Er I autoriserede?</summary>
-        <p>Ja, vi benytter autoriserede vagter med relevant uddannelse.</p>
-      </details>
+        {/* FEATURES m. react-icons */}
+        <section className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <Feature title="Autoriserede vagter" icon={FaShieldAlt}>
+            Uddannede, erfarne medarbejdere med dokumenteret baggrund.
+          </Feature>
+          <Feature title="Risikovurdering" icon={FaClipboardList}>
+            Plan, instrukser og rapportering – tilpasset jeres behov.
+          </Feature>
+          <Feature title="Døgnbemanding" icon={FaClock}>
+            24/7 overvågning, udrykning og opfølgning.
+          </Feature>
+        </section>
 
-      {/* JSON-LD */}
+        {/* BYER (intern linking til lokal-intent) */}
+        {availableCities.length > 0 && (
+          <section className="mt-10">
+            <h2 className="text-xl font-semibold text-slate-900">
+              Tilbydes i disse byer
+            </h2>
+            <ul className="mt-4 flex flex-wrap gap-2">
+              {availableCities.map((c) => (
+                <li key={c.slug}>
+                  <Link
+                    href={`/${c.slug}`}
+                    className="inline-flex items-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                  >
+                    {c.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* TEKSTSEKTION (prose) */}
+        <section className="prose prose-slate mt-10 max-w-none">
+          <h2>Sådan arbejder vi med {svc.name.toLowerCase()}</h2>
+          <p>
+            Vi starter med behovsafdækning og risikovurdering. Herefter
+            skræddersyr vi bemanding, rutiner og rapportering efter lokation,
+            åbningstider og risikoprofil.
+          </p>
+        </section>
+
+        {/* FAQ */}
+        {svc.faqs?.length ? (
+          <section className="mt-10">
+            <h2 className="text-xl font-semibold text-slate-900">FAQ</h2>
+            <div className="mt-4 space-y-3">
+              {svc.faqs.map((f, i) => (
+                <details
+                  key={i}
+                  className="group rounded-xl border border-slate-200 bg-white p-4"
+                >
+                  <summary className="cursor-pointer list-none font-medium text-slate-900">
+                    {f.q}
+                  </summary>
+                  <p className="mt-2 text-sm text-slate-700">{f.a}</p>
+                </details>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {/* RELATEREDE YDELSER */}
+        {related.length > 0 && (
+          <section className="mt-10">
+            <h2 className="text-xl font-semibold text-slate-900">
+              Relaterede ydelser
+            </h2>
+            <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {related.map((s) => (
+                <li key={s.slug}>
+                  <Link href={`/services/${s.slug}`} className="card block">
+                    <h3 className="text-base font-semibold text-slate-900">
+                      {s.name}
+                    </h3>
+                    <p className="mt-1 text-sm text-slate-600">{s.blurb}</p>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </div>
+
+      {/* JSON-LD: Service + FAQ + Breadcrumb */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd(svc)) }}
+      />
+      {svc.faqs?.length ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(faqJsonLd(svc.faqs!)),
+          }}
+        />
+      ) : null}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(breadcrumbList(breadcrumbs)),
         }}
       />
-    </article>
+    </section>
+  );
+}
+
+/* Lille, genbrugelig feature-boks m. ikon */
+function Feature({
+  title,
+  icon: Icon,
+  children,
+}: {
+  title: string;
+  icon: IconType;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="flex items-center gap-2">
+        <Icon className="h-5 w-5 text-slate-700" />
+        <h3 className="text-base font-semibold text-slate-900">{title}</h3>
+      </div>
+      <p className="mt-2 text-sm text-slate-700">{children}</p>
+    </div>
   );
 }
