@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { site } from "@/config/site";
 import { servicesForCity } from "@/lib/site-helpers";
+import { breadcrumbList } from "@/lib/structured-data";
 
 export const dynamicParams = false;
 export async function generateStaticParams() {
@@ -12,23 +13,33 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: { city: string };
+  params: Promise<{ city: string }>;
 }): Promise<Metadata> {
-  const city = site.cities.find((c) => c.slug === params.city);
+  const { city: citySlug } = await params;
+  const city = site.cities.find((c) => c.slug === citySlug);
   if (!city) return { title: site.name };
-  const svcCount = servicesForCity(params.city).length;
+  const svcCount = servicesForCity(citySlug).length;
   return {
     title: `${site.name} i ${city.name}`,
     description: `Autoriseret vagtfirma i ${city.name}. ${svcCount}+ ydelser – ring ${site.phone}.`,
-    alternates: { canonical: `${site.url}/${params.city}` },
+    alternates: { canonical: `${site.url}/${citySlug}` },
   };
 }
 
-export default function CityPage({ params }: { params: { city: string } }) {
-  const city = site.cities.find((c) => c.slug === params.city);
+export default async function CityPage({
+  params,
+}: {
+  params: Promise<{ city: string }>;
+}) {
+  const { city: citySlug } = await params;
+  const city = site.cities.find((c) => c.slug === citySlug);
   if (!city) return notFound();
 
-  const services = servicesForCity(params.city);
+  const services = servicesForCity(citySlug);
+  const breadcrumbs = [
+    { name: "Forside", url: site.url },
+    { name: city.name, url: `${site.url}/${city.slug}` },
+  ];
 
   return (
     <section className="container">
@@ -79,7 +90,6 @@ export default function CityPage({ params }: { params: { city: string } }) {
               </div>
             </dl>
 
-            {/* ⬇️ Link i stedet for a */}
             <Link href="/#kontakt" className="btn btn-primary mt-4 w-full">
               Få et tilbud
             </Link>
@@ -90,19 +100,20 @@ export default function CityPage({ params }: { params: { city: string } }) {
           <h2 className="text-xl font-semibold text-slate-900">
             Ydelser i {city.name}
           </h2>
-          <ul className="mt-5 flex flex-wrap gap-3">
-            {services.map((s) => (
-              <li key={s.slug}>
-                <Link
-                  href={`/services/${s.slug}`}
-                  className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-                >
-                  {s.name} <span aria-hidden>↗</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
         </div>
+
+        <ul className="mt-5 flex flex-wrap gap-3">
+          {services.map((s) => (
+            <li key={s.slug}>
+              <Link
+                href={`/services/${s.slug}`}
+                className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              >
+                {s.name} <span aria-hidden>↗</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
 
         <div className="prose prose-slate mt-10 max-w-none">
           <h2>Local service & bemanding</h2>
@@ -113,6 +124,14 @@ export default function CityPage({ params }: { params: { city: string } }) {
           </p>
         </div>
       </div>
+
+      {/* JSON-LD: BreadcrumbList – bruger breadcrumbs, så ingen unused-var advarsel */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbList(breadcrumbs)),
+        }}
+      />
     </section>
   );
 }
